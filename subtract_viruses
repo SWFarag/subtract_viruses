@@ -4,8 +4,8 @@ set -e
 
 if [ "$#" -ne 4 ]; then
     echo "Description: Substracts viral reads from SRA datasets."
-    echo "Input: Text file containing list of SRA accessions and Viral Genomes FASTA file"
-    echo "Output: FASTA files with with no viral reads"
+    echo "Input: Text file containing SRA accessions (one per line) and Viral Genomes FASTA file"
+    echo "Output: FASTA files with no viral reads"
     BASENAME=`basename $0`
     echo "Usage: ${BASENAME} [SRA Accessions] [Viral Genomes FASTA] [Output directory] [Threads]"
     exit 0
