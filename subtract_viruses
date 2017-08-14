@@ -1,0 +1,38 @@
+#!/bin/bash
+
+set -e
+
+if [ "$#" -ne 4 ]; then
+    echo "Description: Substracts viral reads from SRA datasets."
+    echo "Input: Text file containing list of SRA accessions and Viral Genomes FASTA file"
+    echo "Output: FASTA files with with no viral reads"
+    BASENAME=`basename $0`
+    echo "Usage: ${BASENAME} [SRA Accessions] [Viral Genomes FASTA] [Output directory] [Threads]"
+    exit 0
+fi
+
+ACCESSIONS=$1
+VIRUSES=$2
+DIR=$3
+THREADS=$4
+
+mkdir -p ${DIR}
+cd ${DIR}
+
+makeblastdb -dbtype nucl -in ${VIRUSES} -out viruses -parse_seqids > /dev/null
+
+export BLASTDB=${PWD}:${BLASTDB}
+
+# Substract viral reads from SRA datasets
+for SRR in $(cat ${ACCESSIONS}); do
+    FASTA=${DIR}/${SRR}_noviral.fasta
+    # Keeps only those reads that do not map onto any viral sequences and converts into FASTA format
+    magicblast -sra ${SRR} -db viruses -no_query_id_trim -num_threads ${THREADS} | awk -F'\t' 'FNR > 3 { if ($3!="*") { print ">"$1; print $10 } }' > ${FASTA}
+done 
+
+# Remove the BLAST database files to save space
+for EXTENSION in nhr nin nog nsd nsi nsq; do
+    rm ${DIR}/viruses.${EXTENSION}
+done
+
+echo "Viral extraction complete."
